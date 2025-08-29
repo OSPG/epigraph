@@ -59,7 +59,7 @@ ax2.set_ylabel("Open issues total")
 ax2.legend()
 
 major = mdates.YearLocator()
-minor = mdates.MonthLocator(interval=3)
+minor = mdates.MonthLocator()
 for ax in (ax1, ax2):
     ax.xaxis.set_major_locator(major)
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
