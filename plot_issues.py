@@ -6,17 +6,20 @@ import matplotlib.dates as mdates
 
 RESAMPLE = "W"     # "W" weekly, "M" monthly
 ROLLWIN  = "60D"   # rolling window for smoothing
+CUTOFF_DATE = dt.datetime.fromisoformat("2019-01-01 00:00:00+00:00")
 
 with open("issues.json") as f:
     data = json.load(f)
 
 opened = [
-    dt.datetime.fromisoformat(e["created_at"])
-    for e in data if e.get("created_at")
+    date for e in data
+    if e.get("created_at")
+    if (date := dt.datetime.fromisoformat(e["created_at"])) > CUTOFF_DATE
 ]
 closed = [
-    dt.datetime.fromisoformat(e["closed_at"])
-    for e in data if e.get("closed_at")
+    date for e in data
+    if e.get("closed_at")
+    if (date := dt.datetime.fromisoformat(e["closed_at"])) > CUTOFF_DATE
 ]
 
 open_daily  = pd.Series(opened).dt.floor("D").value_counts().sort_index()
