@@ -4,8 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-RESAMPLE = "W"     # "W" weekly, "M" monthly
-ROLLWIN  = "60D"   # rolling window for smoothing
+_RESAMPLE, _ROLLWIN = 7, 60
 CUTOFF_DATE = dt.datetime.fromisoformat("2019-01-01 00:00:00+00:00")
 
 with open("issues.json") as f:
@@ -36,19 +35,21 @@ daily = pd.DataFrame({
 daily["net"] = daily["opened"] - daily["closed"]
 daily["backlog"] = daily["opened"].cumsum() - daily["closed"].cumsum()
 
-smooth = daily[["opened","closed"]].rolling(ROLLWIN).sum()
-agg    = daily[["opened","closed"]].resample(RESAMPLE).sum()
+RESAMPLE = f"{_RESAMPLE}D"
+ROLLWIN  = f"{_ROLLWIN}D"
+smooth = daily[["opened","closed"]].rolling(ROLLWIN).sum()/_ROLLWIN
+agg    = daily[["opened","closed"]].resample(RESAMPLE).sum()/_RESAMPLE
 
 
 
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10,7), sharex=True)
 
 # activity (resampled + smoothed overlay)
-ax1.plot(agg.index,    agg["opened"],  label=f"Opened/{RESAMPLE}")
-ax1.plot(agg.index,    agg["closed"],  label=f"Closed/{RESAMPLE}")
-ax1.plot(smooth.index, smooth["opened"],  label=f"Opened ({ROLLWIN} rolling)", alpha=0.6, linestyle="--")
-ax1.plot(smooth.index, smooth["closed"],  label=f"Closed ({ROLLWIN} rolling)", alpha=0.6, linestyle="--")
-ax1.set_ylabel("Count")
+ax1.plot(agg.index,    agg["opened"],  label=f"Opened/{RESAMPLE}", alpha=0.6, linestyle="--")
+ax1.plot(agg.index,    agg["closed"],  label=f"Closed/{RESAMPLE}", alpha=0.6, linestyle="--")
+ax1.plot(smooth.index, smooth["opened"],  label=f"Opened ({ROLLWIN} rolling)")
+ax1.plot(smooth.index, smooth["closed"],  label=f"Closed ({ROLLWIN} rolling)")
+ax1.set_ylabel("Count / period")
 ax1.legend()
 
 # cumulative backlog
