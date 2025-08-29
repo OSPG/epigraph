@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 RESAMPLE = "W"     # "W" weekly, "M" monthly
-ROLLWIN  = "30D"   # rolling window for smoothing
+ROLLWIN  = "60D"   # rolling window for smoothing
 
 with open("issues.json") as f:
     data = json.load(f)
@@ -38,8 +38,6 @@ agg    = daily[["opened","closed"]].resample(RESAMPLE).sum()
 
 
 
-loc = mdates.AutoDateLocator()
-fmt = mdates.ConciseDateFormatter(loc)
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10,7), sharex=True)
 
 # activity (resampled + smoothed overlay)
@@ -56,9 +54,15 @@ ax2.axhline(0, linestyle="--", alpha=0.5)
 ax2.set_ylabel("Open issues total")
 ax2.legend()
 
+major = mdates.YearLocator()
+minor = mdates.MonthLocator(interval=3)
 for ax in (ax1, ax2):
-    ax.xaxis.set_major_locator(loc)
-    ax.xaxis.set_major_formatter(fmt)
+    ax.xaxis.set_major_locator(major)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+    ax.xaxis.set_minor_locator(minor)
+
+    ax.grid(True, which="major", axis="x", alpha=0.6)
+    ax.grid(True, which="minor", axis="x", linestyle=":", alpha=0.3)
 
 plt.tight_layout()
 plt.show()
