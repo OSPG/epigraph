@@ -1,0 +1,41 @@
+#+title: Epigraph
+#+author: mazunki
+
+Download all *issues* from a GitHub repo and plot opened/closed activity over time, and measures the accumulated backlog.
+
+* Project layout
+  - =get_issues.sh=  :: fetches all issues via ~gh api~ and writes =issues.json=
+  - =plot_issues.py= :: reads the JSON and plots weekly/rolling activity + cumulative backlog
+  - =README.org= :: this file
+
+* Prereqs
+  - [[https://cli.github.com/][GitHub CLI (gh)]]
+  - [[https://stedolan.github.io/jq/][jq]]
+  - Python 3 with ~pandas~ and ~matplotlib~ (e.g., in a venv)
+
+  #+begin_src sh
+  # (optional) venv
+  python3 -m venv .venv && . .venv/bin/activate
+  pip install --upgrade pip pandas matplotlib
+  #+end_src
+
+* Usage
+  1. Log in to GitHub (once):
+  #+begin_src sh
+  gh auth login
+  #+end_src
+
+  2. Update your local database of issues:
+  #+begin_src sh
+  chmod +x get_issues.sh
+  ./get_issues.sh     # creates issues.json
+  #+end_src
+
+  3. Plot:
+  #+begin_src sh
+  chmod +x ./plot_issues.py
+  ./plot_issues.py
+  #+end_src
+
+  You can also edit some variables at the top of ~./plot_issues.py~ to modify the output, including ~RESAMPLE~ and ~ROLLWIN~.
+

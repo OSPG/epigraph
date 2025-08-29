@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+import json, datetime as dt
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
+RESAMPLE = "W"     # "W" weekly, "M" monthly
+ROLLWIN  = "30D"   # rolling window for smoothing
+
+with open("issues.json") as f:
+    data = json.load(f)
+
+opened = [
+    dt.datetime.fromisoformat(e["created_at"])
+    for e in data if e.get("created_at")
+]
+closed = [
+    dt.datetime.fromisoformat(e["closed_at"])
+    for e in data if e.get("closed_at")
+]
+
+open_daily  = pd.Series(opened).dt.floor("D").value_counts().sort_index()
+close_daily = pd.Series(closed).dt.floor("D").value_counts().sort_index()
+
+start = min(open_daily.index.min(), close_daily.index.min())
+end   = max(open_daily.index.max(), close_daily.index.max())
+idx = pd.date_range(start, end, freq="D")
+daily = pd.DataFrame({
+    "opened": open_daily.reindex(idx, fill_value=0),
+    "closed": close_daily.reindex(idx, fill_value=0),
+})
+
+daily["net"] = daily["opened"] - daily["closed"]
+daily["backlog"] = daily["opened"].cumsum() - daily["closed"].cumsum()
+
+smooth = daily[["opened","closed"]].rolling(ROLLWIN).sum()
+agg    = daily[["opened","closed"]].resample(RESAMPLE).sum()
+
+
+
+loc = mdates.AutoDateLocator()
+fmt = mdates.ConciseDateFormatter(loc)
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10,7), sharex=True)
+
+# activity (resampled + smoothed overlay)
+ax1.plot(agg.index,    agg["opened"],  label=f"Opened/{RESAMPLE}")
+ax1.plot(agg.index,    agg["closed"],  label=f"Closed/{RESAMPLE}")
+ax1.plot(smooth.index, smooth["opened"],  label=f"Opened ({ROLLWIN} rolling)", alpha=0.6, linestyle="--")
+ax1.plot(smooth.index, smooth["closed"],  label=f"Closed ({ROLLWIN} rolling)", alpha=0.6, linestyle="--")
+ax1.set_ylabel("Count")
+ax1.legend()
+
+# cumulative backlog
+ax2.plot(daily.index, daily["backlog"], label="Backlog (cum open − cum closed)")
+ax2.axhline(0, linestyle="--", alpha=0.5)
+ax2.set_ylabel("Open issues total")
+ax2.legend()
+
+for ax in (ax1, ax2):
+    ax.xaxis.set_major_locator(loc)
+    ax.xaxis.set_major_formatter(fmt)
+
+plt.tight_layout()
+plt.show()
+
