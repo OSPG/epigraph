@@ -40,5 +40,6 @@ Download all *issues* from a GitHub repo and plot opened/closed activity over ti
   You can also edit some variables at the top of ~./plot_issues.py~ to modify the output, including ~RESAMPLE~ and ~ROLLWIN~.
 
 Example output
-
-![](plot.svg)
+#+CAPTION: This is the caption for the next figure link (or table)
+#+NAME:   fig:SED-HR4049
+[[./plot.svg]]
